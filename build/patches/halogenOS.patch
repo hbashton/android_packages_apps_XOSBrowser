@@ -1,3 +1,74 @@
+From b5de2eb1c2c0fcb3970a92b3ed02355ad281d903 Mon Sep 17 00:00:00 2001
+From: Hunter <hbashton13@gmail.com>
+Date: Mon, 7 Nov 2016 23:36:11 -0600
+Subject: [PATCH] This is XOS Browser
+
+---
+ .../java/src/org/chromium/base/SysUtils.java       |  10 +--
+ build/config/compiler/compiler.gni                 |   2 +-
+ build/config/out/Default/args.gn                   |   7 ++
+ chrome/android/java/res/raw/libswexssdefender      | Bin 0 -> 71320 bytes
+ chrome/android/java/res/raw/swe_command_line       |   1 +
+ chrome/android/java/res/raw/web_refiner_conf       |  76 +++++++++++++++-
+ chrome/android/java/res/values/swe_strings.xml     |  10 +--
+ chrome/android/java/res/values/values.xml          |   2 +-
+ .../res_swe/drawable-xxhdpi/fre_product_logo.png   | Bin 20916 -> 14936 bytes
+ .../java/res_swe/drawable-xxhdpi/ic_chrome.png     | Bin 1766 -> 12159 bytes
+ .../java/res_swe/mipmap-xxhdpi/app_icon.png        | Bin 7369 -> 11424 bytes
+ chrome/android/java/res_swe/values/swe_overlay.xml |  24 ++---
+ .../chrome/browser/BrowserChromeActivity.java      |   4 -
+ .../chromium/chrome/browser/ChromeSwitches.java    |   4 -
+ .../browser/bookmarks/BookmarkPromoHeader.java     |   4 +-
+ .../compositor/layouts/EdgeNavigationLayout.java   |   9 --
+ .../compositor/layouts/LayoutManagerDocument.java  |   8 +-
+ .../layouts/content/TabContentManager.java         |   2 -
+ .../browser/download/ChromeDownloadDelegate.java   |  13 +--
+ .../browser/download/DownloadManagerService.java   |   7 --
+ .../chrome/browser/firstrun/FirstRunActivity.java  |   4 +-
+ .../browser/firstrun/FirstRunFlowSequencer.java    |   9 +-
+ .../firstrun/ToSAndUMAFirstRunFragment.java        |   5 +-
+ .../chrome/browser/infobar/DownloadInfoBar.java    |   6 +-
+ .../chrome/browser/ntp/RecentTabsManager.java      |   3 -
+ .../chrome/browser/ntp/RecentTabsRowAdapter.java   |   3 -
+ .../browser/ntp/snippets/SnippetsConfig.java       |   4 +-
+ .../browser/offlinepages/OfflinePageBridge.java    |  15 +---
+ .../browser/preferences/MainPreferences.java       |   8 --
+ .../browser/preferences/PrefServiceBridge.java     |   8 +-
+ .../chrome/browser/preferences/Preferences.java    |   5 +-
+ .../datareduction/DataReductionPromoScreen.java    |   5 +-
+ .../datareduction/DataReductionPromoUtils.java     |   2 +-
+ .../preferences/privacy/PrivacyPreferences.java    |   6 --
+ .../preferences/website/TranslatePreferences.java  |   3 -
+ .../tab/InterceptNavigationDelegateImpl.java       |   4 +-
+ components/web-shield/xss_defender                 |   1 +
+ sandbox/linux/BUILD.gn                             |   6 +-
+ swe/channels/default/branding/BRANDING             |  19 ++--
+ swe/channels/default/raw/bookmarks_preload         |  13 +++
+ swe/channels/default/raw/search_engines_preload    |  15 ++++
+ swe/channels/default/raw/web_refiner_conf          |  97 +++++++++++++++++++++
+ swe/channels/default/res/mipmap-hdpi/app_icon.png  | Bin 0 -> 4867 bytes
+ swe/channels/default/res/mipmap-mdpi/app_icon.png  | Bin 0 -> 2917 bytes
+ swe/channels/default/res/mipmap-xhdpi/app_icon.png | Bin 0 -> 6897 bytes
+ .../default/res/mipmap-xxhdpi/app_icon.png         | Bin 0 -> 11424 bytes
+ .../default/res/mipmap-xxxhdpi/app_icon.png        | Bin 0 -> 16182 bytes
+ swe/channels/default/values/overlay.xml            |   6 ++
+ swe/channels/default/values/strings.xml            |  11 +++
+ 49 files changed, 281 insertions(+), 160 deletions(-)
+ create mode 100644 build/config/out/Default/args.gn
+ create mode 100755 chrome/android/java/res/raw/libswexssdefender
+ create mode 100644 chrome/android/java/res/raw/swe_command_line
+ create mode 160000 components/web-shield/xss_defender
+ create mode 100644 swe/channels/default/raw/bookmarks_preload
+ create mode 100644 swe/channels/default/raw/search_engines_preload
+ create mode 100644 swe/channels/default/raw/web_refiner_conf
+ create mode 100644 swe/channels/default/res/mipmap-hdpi/app_icon.png
+ create mode 100644 swe/channels/default/res/mipmap-mdpi/app_icon.png
+ create mode 100644 swe/channels/default/res/mipmap-xhdpi/app_icon.png
+ create mode 100644 swe/channels/default/res/mipmap-xxhdpi/app_icon.png
+ create mode 100644 swe/channels/default/res/mipmap-xxxhdpi/app_icon.png
+ create mode 100644 swe/channels/default/values/overlay.xml
+ create mode 100644 swe/channels/default/values/strings.xml
+
 diff --git a/base/android/java/src/org/chromium/base/SysUtils.java b/base/android/java/src/org/chromium/base/SysUtils.java
 index cc5a32c..4ede8b9 100644
 --- a/base/android/java/src/org/chromium/base/SysUtils.java
@@ -931,16 +1002,14 @@ index 861250c..080cfb4 100644
  
      <string name="swe_drm_file_unsupported" tools:ignore="UnusedResources">Uploading DRM files is not supported!</string>
 diff --git a/chrome/android/java/res/values/values.xml b/chrome/android/java/res/values/values.xml
-index c7d60bf..0701438 100644
+index c7d60bf..791ad93 100644
 --- a/chrome/android/java/res/values/values.xml
 +++ b/chrome/android/java/res/values/values.xml
-@@ -68,8 +68,8 @@
-     <integer name="tooltip_site_integrity_check_wait">5</integer>
+@@ -69,7 +69,7 @@
  
      <!-- QRD features -->
--    <bool name="swe_feature_exit_dialog">false</bool>
+     <bool name="swe_feature_exit_dialog">false</bool>
 -    <bool name="swe_feature_allow_media_downloads">false</bool>
-+    <bool name="swe_feature_exit_dialog">true</bool>
 +    <bool name="swe_feature_allow_media_downloads">true</bool>
  
      <!-- Partner customization -->
@@ -1638,6 +1707,282 @@ zwPc^!@y49J!@OZCen0tYR*>Fi?U2NDJ_=#cql*-H${we55aN|Lhg~WA>Vd5o{hf`v
 z&5N-3q>KDGeq=_e+g?KgbU+z#|JX{Cbb-*SInZRBAVf9_`hSlZ*1|_eo1a+qyMqpk
 OkaI>Bgi4%q#D4)^ms}?R
 
+diff --git a/chrome/android/java/res_swe/drawable-xxhdpi/ic_chrome.png b/chrome/android/java/res_swe/drawable-xxhdpi/ic_chrome.png
+index 47445eb77836bdd7119700f38a4af59c13a55fac..8c8b1d8e3aad72cb3f7593c40f9ee772e6ecbb0a 100644
+GIT binary patch
+literal 12159
+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
+EUrs_7N&o-=
+
+literal 1766
+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
+IM6N<$g2^sD8vp<R
+
 diff --git a/chrome/android/java/res_swe/mipmap-xxhdpi/app_icon.png b/chrome/android/java/res_swe/mipmap-xxhdpi/app_icon.png
 index d9bc80586fb7ccbe7a9121ca77c09e166fd103ed..0c3561a22b7cb542bc64373b0286b1348958c075 100644
 GIT binary patch
@@ -2051,6 +2396,28 @@ index d97a861..99e99b0 100644
    <string name="chrome_privacy_notice_url" translatable="false">"about:blank"</string>
    <string name="chrome_terms_of_service_url" translatable="false">"about:blank"</string>
  </resources>
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/BrowserChromeActivity.java b/chrome/android/java/src/org/chromium/chrome/browser/BrowserChromeActivity.java
+index 2faa3f7..51cc9c6 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/BrowserChromeActivity.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/BrowserChromeActivity.java
+@@ -89,7 +89,6 @@ import org.chromium.content_public.browser.LoadUrlParams;
+ 
+ import org.chromium.net.NetError;
+ 
+-import org.codeaurora.swe.SWEBrowserSwitches;
+ import org.codeaurora.swe.SWECommandLine;
+ import org.codeaurora.swe.DownloadInfoBarContainer;
+ 
+@@ -506,9 +505,6 @@ public abstract class BrowserChromeActivity extends AsyncInitializationActivity
+     }
+ 
+     private void registerDownloadPathSelectionReceiver() {
+-        if (!CommandLine.getInstance().hasSwitch(
+-                    SWEBrowserSwitches.DOWNLOAD_PATH_SELECTION))
+-            return;
+ 
+         if (null != mDirSelectIntentReceiver)
+             return;
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/ChromeSwitches.java b/chrome/android/java/src/org/chromium/chrome/browser/ChromeSwitches.java
 index e235d5b..4500d3a 100644
 --- a/chrome/android/java/src/org/chromium/chrome/browser/ChromeSwitches.java
@@ -2164,6 +2531,73 @@ index 9c79e8c..421a9cf 100644
                  nativePageBitmap.recycle();
              } else {
                  if (tab.getWebContents() == null) return;
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/download/ChromeDownloadDelegate.java b/chrome/android/java/src/org/chromium/chrome/browser/download/ChromeDownloadDelegate.java
+index 41742bf..cfccbae 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/download/ChromeDownloadDelegate.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/download/ChromeDownloadDelegate.java
+@@ -36,8 +36,6 @@ import org.chromium.content_public.browser.WebContents;
+ import org.chromium.ui.base.WindowAndroid;
+ import org.chromium.ui.base.WindowAndroid.PermissionCallback;
+ 
+-import org.codeaurora.swe.SWEBrowserSwitches;
+-
+ import java.io.File;
+ 
+ /**
+@@ -294,14 +292,7 @@ public class ChromeDownloadDelegate {
+ 
+     private static boolean doesFileAlreadyExists(String dirPath, final String fileName) {
+         assert !ThreadUtils.runningOnUiThread();
+-
+-        // If SWE download enhancements are enabled, return true always so that
+-        // we always launch the infobar.
+-        if (CommandLine.getInstance().hasSwitch(SWEBrowserSwitches.DOWNLOAD_PATH_SELECTION))
+             return true;
+-
+-        final File file = new File(dirPath, fileName);
+-        return file != null && file.exists();
+     }
+ 
+     private static void deleteFileForOverwrite(DownloadInfo info) {
+@@ -327,9 +318,7 @@ public class ChromeDownloadDelegate {
+     private boolean enqueueDownloadManagerRequestFromNative(
+             final boolean overwrite, final DownloadInfo downloadInfo,
+             final String dirFullPath) {
+-        if (CommandLine.getInstance().hasSwitch(
+-                    SWEBrowserSwitches.DOWNLOAD_PATH_SELECTION) &&
+-                null != dirFullPath && false == overwrite) {
++        if (null != dirFullPath && false == overwrite) {
+             DownloadInfo.Builder builder =
+                 DownloadInfo.Builder.fromDownloadInfo(downloadInfo);
+             builder.setFilePath(dirFullPath);
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/download/DownloadManagerService.java b/chrome/android/java/src/org/chromium/chrome/browser/download/DownloadManagerService.java
+index 3051553..4e01fde 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/download/DownloadManagerService.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/download/DownloadManagerService.java
+@@ -40,8 +40,6 @@ import org.chromium.net.NetworkChangeNotifierAutoDetect;
+ import org.chromium.net.RegistrationPolicyAlwaysRegister;
+ import org.chromium.ui.widget.Toast;
+ 
+-import org.codeaurora.swe.SWEBrowserSwitches;
+-
+ import java.io.File;
+ import java.util.ArrayList;
+ import java.util.Arrays;
+@@ -927,14 +925,9 @@ public class DownloadManagerService extends BroadcastReceiver implements
+ 
+         private boolean sweSetFullDirPath(DownloadInfo info,
+                 DownloadManager.Request request) {
+-            if (CommandLine.getInstance().hasSwitch(
+-                        SWEBrowserSwitches.DOWNLOAD_PATH_SELECTION)) {
+                 File destinationFile = new File(info.getFilePath(), info.getFileName());
+                 request.setDestinationUri(Uri.fromFile(destinationFile));
+                 return true;
+-            }
+-
+-            return false;
+         }
+     }
+ 
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java b/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java
 index b0e78d7..2828050 100644
 --- a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java
@@ -2180,7 +2614,7 @@ index b0e78d7..2828050 100644
  
          // An optional sign-in page.
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunFlowSequencer.java b/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunFlowSequencer.java
-index ff0fc7a..6ffda1f 100644
+index fe3719f..1def61a 100644
 --- a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunFlowSequencer.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunFlowSequencer.java
 @@ -89,10 +89,6 @@ public abstract class FirstRunFlowSequencer  {
@@ -2231,6 +2665,26 @@ index ed534f3..8e42c6f 100644
  
          mTosAndPrivacy.setMovementMethod(LinkMovementMethod.getInstance());
  
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/infobar/DownloadInfoBar.java b/chrome/android/java/src/org/chromium/chrome/browser/infobar/DownloadInfoBar.java
+index 64f0899..7cf2fae 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/infobar/DownloadInfoBar.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/infobar/DownloadInfoBar.java
+@@ -210,13 +210,11 @@ public class DownloadInfoBar extends DownloadOverwriteInfoBar {
+     }
+ 
+     public static boolean areSWEDownloadEnhancementsEnabled() {
+-        return CommandLine.getInstance().hasSwitch(
+-                SWEBrowserSwitches.DOWNLOAD_PATH_SELECTION);
++        return true;
+     }
+ 
+     public static boolean canSetDirOnMime() {
+-        return CommandLine.getInstance().hasSwitch(
+-                SWEBrowserSwitches.DOWNLOAD_PATH_DIR_ON_MIME);
++        return true;
+     }
+ 
+     private static String getPreferredFolderForMime(String mimeType) {
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/ntp/RecentTabsManager.java b/chrome/android/java/src/org/chromium/chrome/browser/ntp/RecentTabsManager.java
 index 8f511df..b9bd6cc 100644
 --- a/chrome/android/java/src/org/chromium/chrome/browser/ntp/RecentTabsManager.java
@@ -2281,6 +2735,46 @@ index c2e46b6..3910297 100644
      }
  
      public static boolean isSaveToOfflineEnabled() {
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/offlinepages/OfflinePageBridge.java b/chrome/android/java/src/org/chromium/chrome/browser/offlinepages/OfflinePageBridge.java
+index 9e17f3c..5826e58 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/offlinepages/OfflinePageBridge.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/offlinepages/OfflinePageBridge.java
+@@ -111,10 +111,7 @@ public class OfflinePageBridge {
+      */
+     public static boolean isOfflineBookmarksEnabled() {
+         ThreadUtils.assertOnUiThread();
+-        if (sOfflineBookmarksEnabled == null) {
+-            sOfflineBookmarksEnabled = nativeIsOfflineBookmarksEnabled();
+-        }
+-        return sOfflineBookmarksEnabled;
++        return true;
+     }
+ 
+     /**
+@@ -123,10 +120,7 @@ public class OfflinePageBridge {
+     @VisibleForTesting
+     public static boolean isBackgroundLoadingEnabled() {
+         ThreadUtils.assertOnUiThread();
+-        if (sBackgroundLoadingEnabled == null) {
+-            sBackgroundLoadingEnabled = nativeIsBackgroundLoadingEnabled();
+-        }
+-        return sBackgroundLoadingEnabled;
++        return true;
+     }
+ 
+     /**
+@@ -135,10 +129,7 @@ public class OfflinePageBridge {
+     @VisibleForTesting
+     public static boolean isPageSharingEnabled() {
+         ThreadUtils.assertOnUiThread();
+-        if (sPageSharingEnabled == null) {
+-            sPageSharingEnabled = nativeIsPageSharingEnabled();
+-        }
+-        return sPageSharingEnabled;
++        return true;
+     }
+ 
+     /**
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/preferences/MainPreferences.java b/chrome/android/java/src/org/chromium/chrome/browser/preferences/MainPreferences.java
 index 8316eb9..2d4ce57 100644
 --- a/chrome/android/java/src/org/chromium/chrome/browser/preferences/MainPreferences.java
@@ -2527,6 +3021,109 @@ index 0000000..aff32a2
 +        }],
 +        "default": 0
 +    }
+diff --git a/swe/channels/default/raw/web_refiner_conf b/swe/channels/default/raw/web_refiner_conf
+new file mode 100644
+index 0000000..f946589
+--- /dev/null
++++ b/swe/channels/default/raw/web_refiner_conf
+@@ -0,0 +1,97 @@
++{
++  "version": "1.0",
++  "update": {},
++  "subscriptions": [
++   {
++      "name"            : "KOR: Tgpark filters",
++      "category"        : "ADS",
++      "format"          : "WebRefiner 1.0",
++      "url"             : "https://raw.githubusercontent.com/tgpark/tgparkList/master/tgparkList.txt",
++      "expiration"      : "3 days"
++    },
++    {
++      "name"            : "List-KR",
++      "category"        : "ADS",
++      "format"          : "WebRefiner 1.0",
++      "url"             : "https://raw.githubusercontent.com/SlowMemory/List-KR/master/filter.txt",
++      "expiration"      : "3 days"
++    },
++    {
++      "name"            : "KOR: HyunGuard",
++      "category"        : "ADS",
++      "format"          : "WebRefiner 1.0",
++      "url"             : "https://raw.githubusercontent.com/NativeHyun/HyunGuard/master/General/general.txt",
++      "expiration"      : "5 days"
++    },
++    {
++      "name"            : "KOR: YousList",
++      "category"        : "ADS",
++      "format"          : "WebRefiner 1.0",
++      "url"             : "https://raw.githubusercontent.com/yous/YousList/master/youslist.txt",
++      "expiration"      : "5 days"
++    },
++    {
++      "name"            : "Malware Domains Filter",
++      "category"        : "MALWARE_DOMAINS",
++      "format"          : "WebRefiner 1.0",
++      "url"             : "https://easylist-downloads.adblockplus.org/malwaredomains_full.txt",
++      "expiration"      : "5 days"
++    },
++    {
++      "name"            : "Privacy Filter",
++      "category"        : "TRACKERS",
++      "format"          : "WebRefiner 1.0",
++      "url"             : "https://easylist-downloads.adblockplus.org/easyprivacy.txt",
++      "expiration"      : "5 days"
++    },
++    {
++      "name"            : "Ad Filter",
++      "category"        : "ADS",
++      "format"          : "WebRefiner 1.0",
++      "url"             : "https://easylist-downloads.adblockplus.org/easylist.txt",
++      "expiration"      : "5 days"
++    },
++    {
++      "name"            : "Dutch Ad Filter",
++      "category"        : "ADS",
++      "format"          : "WebRefiner 1.0",
++      "url"             : "https://easylist-downloads.adblockplus.org/easylistdutch.txt",
++      "expiration"      : "5 days"
++    },
++    {
++      "name"            : "Anti Adblock Filter",
++      "category"        : "ADS",
++      "format"          : "WebRefiner 1.0",
++      "url"             : "https://easylist-downloads.adblockplus.org/antiadblockfilters.txt",
++      "expiration"      : "5 days"
++    },
++    {
++      "name"            : "Adware Filter",
++      "category"        : "ADS",
++      "format"          : "WebRefiner 1.0",
++      "url"             : "https://easylist-downloads.adblockplus.org/adwarefilters.txt",
++      "expiration"      : "5 days"
++    },
++    {
++      "name"            : "Regional Ad Filter",
++      "category"        : "ADS",
++      "format"          : "WebRefiner 1.0",
++      "url"             : "https://easylist-downloads.adblockplus.org/bitblock.txt",
++      "expiration"      : "5 days"
++    },
++    {
++      "name"            : "Regional Anti Adblock Filter",
++      "category"        : "ADS",
++      "format"          : "WebRefiner 1.0",
++      "url"             : "https://easylist-downloads.adblockplus.org/advblock.txt",
++      "expiration"      : "5 days"
++    },
++    {
++      "name"            : "Anti AdBlock Filters 2",
++      "category"        : "ADS",
++      "format"          : "WebRefiner 1.0",
++      "url"             : "https://raw.githubusercontent.com/reek/anti-adblock-killer/master/anti-adblock-killer-filters.txt",
++      "expiration"      : "5 days"
++    }
++  ]
++}
 diff --git a/swe/channels/default/res/mipmap-hdpi/app_icon.png b/swe/channels/default/res/mipmap-hdpi/app_icon.png
 new file mode 100644
 index 0000000000000000000000000000000000000000..6dbc87cc39074f122fdee489f4b3c4393b4a7eb7
@@ -3416,3 +4013,6 @@ index 0000000..196407e
 +<string name="swe_minimize">Minimize</string>
 +<string name="swe_quit">Quit</string>
 +</resources>
+-- 
+2.7.4
+
