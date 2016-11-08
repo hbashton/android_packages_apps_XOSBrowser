@@ -1,28 +1,33 @@
-export GYP_CHROMIUM_NO_ACTION=1 # don't process gyp
+#!/bin/bash
+LOCAL_REPO="$(dirname $(dirname $(readlink -f $0)))"
+#Colors
+source $LOCAL_REPO/build/colors.sh
+set -e
+echo -e "${Blu}Setting up build environment"
 
-if [ -d src -a -f src/DEPS ]; then
-    cd src
-    MAJOR_VER=$(cat swe/VERSION | grep -e ^MAJOR\=)
-    MAJOR_VER=${MAJOR_VER#MAJOR=}
-    SYNC_RET=$(git pull origin m$MAJOR_VER)
-    SYNC_RET=$(echo "$SYNC_RET" | grep 'up-to-date')
-    if [ $# -gt 0 ] && [ $1 = "force" ]; then
-        SYNC_RET=1
-    elif [ ${#SYNC_RET} -eq 0 ]; then
-        SYNC_RET=1
-    else
-        SYNC_RET=
-    fi
+echo -e "${Blu}Setting $LOCAL_REPO as the local directory"
+ROMName=$(basename $LOCAL_REPO)
 
-    cd ..
-    if [ $SYNC_RET ]; then
-        gclient sync -n --no-nag-max
-    fi
+echo -e "${Yel}Disabling GYP"
+export GYP_CHROMIUM_NO_ACTION=1
+export DEPOT_TOOLS_DIR=$HOME/depot_tools
+if [ -d "$DEPOT_TOOLS_DIR" ]; then
+
+echo -e "${Yel}Found Depot Tools, adding to path"
+export PATH="$PATH":$HOME/depot_tools
 else
-    gclient sync -n --no-nag-max
-    cd src
-    ./build/install-build-deps-android.sh
-    . ./build/android/envsetup.sh
+
+echo -e "${Red}Could not find $DEPOT_TOOLS. Downloading from git. If you have it somewhere else, add it to your home directory."
+git clone git://codeaurora.org/quic/chrome4sdp/chromium/tools/depot_tools.git $HOME
+
+echo -e "${Yel}Adding $DEPOT_TOOLS to path"
+export PATH="$PATH":$HOME/depot_tools
 fi
 
-
+echo -e "{Yel}Beginning gclient sync. This may take awhile, so sit back and enjoy the terminal"
+gclient sync
+cd src
+echo -e "S{Yel}Installing Android build dependencies"
+./build/install-build-deps-android.sh
+echo -e "${Yel}All done! Now, run ./build/init.sh"
+exit 0
