@@ -1,12 +1,17 @@
-From b5de2eb1c2c0fcb3970a92b3ed02355ad281d903 Mon Sep 17 00:00:00 2001
+From 93e414b582a496b2320f3015a6dac21b0c8ee699 Mon Sep 17 00:00:00 2001
 From: Hunter <hbashton13@gmail.com>
-Date: Mon, 7 Nov 2016 23:36:11 -0600
+Date: Wed, 9 Nov 2016 13:45:52 -0600
 Subject: [PATCH] This is XOS Browser
 
 ---
  .../java/src/org/chromium/base/SysUtils.java       |  10 +--
+ build/android/lint/suppressions.xml                |   2 +-
  build/config/compiler/compiler.gni                 |   2 +-
  build/config/out/Default/args.gn                   |   7 ++
+ chrome/android/BUILD.gn                            |   6 +-
+ .../android/java/res/anim/activity_open_enter.xml  |   2 +-
+ .../layout/payments_request_editor_textview.xml    |   2 +-
+ .../preference_address_float_label_layout.xml      |   2 +-
  chrome/android/java/res/raw/libswexssdefender      | Bin 0 -> 71320 bytes
  chrome/android/java/res/raw/swe_command_line       |   1 +
  chrome/android/java/res/raw/web_refiner_conf       |  76 +++++++++++++++-
@@ -24,7 +29,7 @@ Subject: [PATCH] This is XOS Browser
  .../layouts/content/TabContentManager.java         |   2 -
  .../browser/download/ChromeDownloadDelegate.java   |  13 +--
  .../browser/download/DownloadManagerService.java   |   7 --
- .../chrome/browser/firstrun/FirstRunActivity.java  |   4 +-
+ .../chrome/browser/firstrun/FirstRunActivity.java  |   9 +-
  .../browser/firstrun/FirstRunFlowSequencer.java    |   9 +-
  .../firstrun/ToSAndUMAFirstRunFragment.java        |   5 +-
  .../chrome/browser/infobar/DownloadInfoBar.java    |   6 +-
@@ -33,12 +38,14 @@ Subject: [PATCH] This is XOS Browser
  .../browser/ntp/snippets/SnippetsConfig.java       |   4 +-
  .../browser/offlinepages/OfflinePageBridge.java    |  15 +---
  .../browser/preferences/MainPreferences.java       |   8 --
- .../browser/preferences/PrefServiceBridge.java     |   8 +-
- .../chrome/browser/preferences/Preferences.java    |   5 +-
+ .../browser/preferences/PrefServiceBridge.java     |   6 --
+ .../chrome/browser/preferences/Preferences.java    |  10 +--
  .../datareduction/DataReductionPromoScreen.java    |   5 +-
  .../datareduction/DataReductionPromoUtils.java     |   2 +-
  .../preferences/privacy/PrivacyPreferences.java    |   6 --
  .../preferences/website/TranslatePreferences.java  |   3 -
+ .../browser/signin/AccountSigninActivity.java      |  36 +++++++-
+ .../chrome/browser/signin/AccountSigninView.java   |   3 +-
  .../tab/InterceptNavigationDelegateImpl.java       |   4 +-
  components/web-shield/xss_defender                 |   1 +
  sandbox/linux/BUILD.gn                             |   6 +-
@@ -53,7 +60,7 @@ Subject: [PATCH] This is XOS Browser
  .../default/res/mipmap-xxxhdpi/app_icon.png        | Bin 0 -> 16182 bytes
  swe/channels/default/values/overlay.xml            |   6 ++
  swe/channels/default/values/strings.xml            |  11 +++
- 49 files changed, 281 insertions(+), 160 deletions(-)
+ 56 files changed, 326 insertions(+), 176 deletions(-)
  create mode 100644 build/config/out/Default/args.gn
  create mode 100755 chrome/android/java/res/raw/libswexssdefender
  create mode 100644 chrome/android/java/res/raw/swe_command_line
@@ -89,6 +96,19 @@ index cc5a32c..4ede8b9 100644
 +        return false;
      }
  }
+diff --git a/build/android/lint/suppressions.xml b/build/android/lint/suppressions.xml
+index f8628fc..c825198 100644
+--- a/build/android/lint/suppressions.xml
++++ b/build/android/lint/suppressions.xml
+@@ -174,7 +174,7 @@ Still reading?
+   <issue id="InvalidPackage" severity="Error">
+     <ignore regexp="espresso/espresso_core_java.interface.jar"/>
+   </issue>
+-  <issue id="LabelFor" severity="Error">
++  <issue id="LabelFor" severity="ignore">
+     <ignore regexp="android_webview/tools/system_webview_shell/apk/res/layout/activity_webview_browser.xml"/>
+   </issue>
+   <issue id="LintError" severity="Error"/>
 diff --git a/build/config/compiler/compiler.gni b/build/config/compiler/compiler.gni
 index a05c612..7bc578e 100644
 --- a/build/config/compiler/compiler.gni
@@ -115,6 +135,63 @@ index 0000000..f9045bc
 +is_debug = false
 +is_component_build = false
 +target_cpu = "arm64"
+diff --git a/chrome/android/BUILD.gn b/chrome/android/BUILD.gn
+index 19f6dc5..01bc5d6 100644
+--- a/chrome/android/BUILD.gn
++++ b/chrome/android/BUILD.gn
+@@ -42,7 +42,7 @@ jinja_template("chrome_public_android_manifest") {
+   output = chrome_public_android_manifest
+   variables = chrome_public_jinja_variables
+   variables += [
+-    "min_sdk_version=16",
++    "min_sdk_version=23",
+     "target_sdk_version=23",
+     "apk_architecture=$target_cpu",
+   ]
+@@ -69,8 +69,8 @@ jinja_template("chrome_sync_shell_android_manifest") {
+   output = chrome_sync_shell_android_manifest
+   variables = chrome_sync_shell_jinja_variables
+   variables += [
+-    "min_sdk_version=16",
+-    "target_sdk_version=22",
++    "min_sdk_version=23",
++    "target_sdk_version=23",
+     "apk_architecture=$target_cpu",
+   ]
+   if (is_clang) {
+diff --git a/chrome/android/java/res/anim/activity_open_enter.xml b/chrome/android/java/res/anim/activity_open_enter.xml
+index 9113119..9614f7d 100644
+--- a/chrome/android/java/res/anim/activity_open_enter.xml
++++ b/chrome/android/java/res/anim/activity_open_enter.xml
+@@ -22,4 +22,4 @@
+             android:fillAfter="true"
+             android:interpolator="@android:interpolator/decelerate_quint"
+             android:duration="300"/>
+-</set>
+\ No newline at end of file
++</set>
+diff --git a/chrome/android/java/res/layout/payments_request_editor_textview.xml b/chrome/android/java/res/layout/payments_request_editor_textview.xml
+index db89d5b..3ff0edd 100644
+--- a/chrome/android/java/res/layout/payments_request_editor_textview.xml
++++ b/chrome/android/java/res/layout/payments_request_editor_textview.xml
+@@ -9,4 +9,4 @@
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:singleLine="true"
+-    android:imeOptions="flagNoExtractUi" />
+\ No newline at end of file
++    android:imeOptions="flagNoExtractUi" />
+diff --git a/chrome/android/java/res/layout/preference_address_float_label_layout.xml b/chrome/android/java/res/layout/preference_address_float_label_layout.xml
+index 3f66ead..01a22a4 100644
+--- a/chrome/android/java/res/layout/preference_address_float_label_layout.xml
++++ b/chrome/android/java/res/layout/preference_address_float_label_layout.xml
+@@ -18,4 +18,4 @@
+         android:imeOptions="flagNoExtractUi"
+         android:inputType="textPostalAddress|textCapWords" />
+ 
+-</org.chromium.chrome.browser.widget.CompatibilityTextInputLayout>
+\ No newline at end of file
++</org.chromium.chrome.browser.widget.CompatibilityTextInputLayout>
 diff --git a/chrome/android/java/res/raw/libswexssdefender b/chrome/android/java/res/raw/libswexssdefender
 new file mode 100755
 index 0000000000000000000000000000000000000000..db9696c295892e348e99f2d6b592966e90f53e9f
@@ -844,11 +921,11 @@ HcmV?d00001
 
 diff --git a/chrome/android/java/res/raw/swe_command_line b/chrome/android/java/res/raw/swe_command_line
 new file mode 100644
-index 0000000..1df18eb
+index 0000000..070c5ae
 --- /dev/null
 +++ b/chrome/android/java/res/raw/swe_command_line
 @@ -0,0 +1 @@
-+--enable-suppressed-chromium-features
++--enable-suppressed-chromium-features --disable-xssdefender
 diff --git a/chrome/android/java/res/raw/web_refiner_conf b/chrome/android/java/res/raw/web_refiner_conf
 index 03d3598..f946589 100644
 --- a/chrome/android/java/res/raw/web_refiner_conf
@@ -2599,10 +2676,10 @@ index 3051553..4e01fde 100644
      }
  
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java b/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java
-index b0e78d7..2828050 100644
+index b0e78d7..9636357 100644
 --- a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunActivity.java
-@@ -131,8 +131,8 @@ public class FirstRunActivity extends AppCompatActivity implements FirstRunPageD
+@@ -131,15 +131,10 @@ public class FirstRunActivity extends AppCompatActivity implements FirstRunPageD
  
          // An optional Data Saver page.
          if (mFreProperties.getBoolean(SHOW_DATA_REDUCTION_PAGE)) {
@@ -2612,7 +2689,14 @@ index b0e78d7..2828050 100644
 +            //mFreProgressStates.add(FRE_PROGRESS_DATA_SAVER_SHOWN);
          }
  
-         // An optional sign-in page.
+-        // An optional sign-in page.
+-        if (mFreProperties.getBoolean(SHOW_SIGNIN_PAGE)) {
+-            mPages.add(pageOf(AccountFirstRunFragment.class));
+-            mFreProgressStates.add(FRE_PROGRESS_SIGNIN_SHOWN);
+-        }
+ 
+         if (mFreProperties.getBoolean(SHOW_SAFE_BROWSING_PAGE)) {
+             mPages.add(pageOf(SafeBrowsingFirstRunFragment.class));
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunFlowSequencer.java b/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunFlowSequencer.java
 index fe3719f..1def61a 100644
 --- a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunFlowSequencer.java
@@ -2804,10 +2888,10 @@ index 8316eb9..2d4ce57 100644
  
      private void clearSignInPref() {
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/preferences/PrefServiceBridge.java b/chrome/android/java/src/org/chromium/chrome/browser/preferences/PrefServiceBridge.java
-index becff8c..279fb6f 100644
+index becff8c..d22715c 100644
 --- a/chrome/android/java/src/org/chromium/chrome/browser/preferences/PrefServiceBridge.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/preferences/PrefServiceBridge.java
-@@ -1145,13 +1145,7 @@ public final class PrefServiceBridge {
+@@ -1145,12 +1145,6 @@ public final class PrefServiceBridge {
       * @return whether the WebRefiner preference is enabled.
       */
      public boolean isWebDefenderEnabled() {
@@ -2817,16 +2901,45 @@ index becff8c..279fb6f 100644
 -                .hasSwitch(ChromeSwitches.WEB_DEFENDER_DEFAULT) && !startVal)) {
 -            return false;
 -        }
--        return nativeGetWebDefenderEnabled();
-+            return nativeGetWebDefenderEnabled();
+         return nativeGetWebDefenderEnabled();
      }
  
-     public boolean userDefinedWebDefender() {
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/preferences/Preferences.java b/chrome/android/java/src/org/chromium/chrome/browser/preferences/Preferences.java
-index e76b10b..6bde9b9 100644
+index e76b10b..318b419 100644
 --- a/chrome/android/java/src/org/chromium/chrome/browser/preferences/Preferences.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/preferences/Preferences.java
-@@ -224,13 +224,10 @@ public class Preferences extends AppCompatActivity implements
+@@ -20,11 +20,14 @@ import android.os.Process;
+ import android.preference.Preference;
+ import android.preference.PreferenceFragment;
+ import android.preference.PreferenceFragment.OnPreferenceStartFragmentCallback;
++import android.support.v4.app.ActivityCompat;
++import android.support.v4.content.ContextCompat;
+ import android.support.v7.app.AppCompatActivity;
+ import android.util.Log;
+ import android.view.Menu;
+ import android.view.MenuItem;
+ import android.view.WindowManager;
++import android.widget.Toast;
+ 
+ import org.chromium.base.ApiCompatibilityUtils;
+ import org.chromium.base.CommandLine;
+@@ -63,6 +66,7 @@ public class Preferences extends AppCompatActivity implements
+ 
+     private static boolean sActivityNotExportedChecked;
+ 
++
+     @SuppressFBWarnings("DM_EXIT")
+     @SuppressLint("InlinedApi")
+     @Override
+@@ -113,7 +117,6 @@ public class Preferences extends AppCompatActivity implements
+             if (nfcAdapter != null) nfcAdapter.setNdefPushMessage(null, this);
+         }
+ 
+-
+         Resources res = getResources();
+         ApiCompatibilityUtils.setTaskDescription(this, res.getString(R.string.app_name),
+                 BitmapFactory.decodeResource(res, R.mipmap.app_icon),
+@@ -224,13 +227,10 @@ public class Preferences extends AppCompatActivity implements
      public boolean onCreateOptionsMenu(Menu menu) {
          super.onCreateOptionsMenu(menu);
          // By default, every screen in Settings shows a "Help & feedback" menu item.
@@ -2915,6 +3028,112 @@ index 08c0126..3530d42 100644
          menu.add(Menu.NONE, R.id.menu_id_reset, Menu.NONE, R.string.reset_translate_defaults);
      }
  
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/signin/AccountSigninActivity.java b/chrome/android/java/src/org/chromium/chrome/browser/signin/AccountSigninActivity.java
+index e28690a..f91a981 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/signin/AccountSigninActivity.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/signin/AccountSigninActivity.java
+@@ -8,10 +8,14 @@ import android.app.Activity;
+ import android.content.Context;
+ import android.content.Intent;
+ import android.os.Bundle;
++import android.Manifest;
++import android.widget.TextView;
++import android.widget.Toast;
+ import android.support.annotation.IntDef;
+ import android.support.v7.app.AppCompatActivity;
+ import android.view.LayoutInflater;
+-
++import android.support.v4.app.ActivityCompat;
++import android.support.v4.content.ContextCompat;
+ import org.chromium.base.Log;
+ import org.chromium.base.annotations.SuppressFBWarnings;
+ import org.chromium.base.library_loader.ProcessInitException;
+@@ -23,6 +27,8 @@ import org.chromium.chrome.browser.preferences.ManagedPreferencesUtils;
+ import org.chromium.chrome.browser.preferences.PreferencesLauncher;
+ import org.chromium.chrome.browser.profiles.Profile;
+ import org.chromium.chrome.browser.signin.SigninManager.SignInCallback;
++import android.content.pm.PackageManager;
++import android.Manifest.permission;
+ 
+ import java.lang.annotation.Retention;
+ import java.lang.annotation.RetentionPolicy;
+@@ -36,7 +42,7 @@ public class AccountSigninActivity extends AppCompatActivity
+     private static final String TAG = "AccountSigninActivity";
+     private static final String INTENT_SIGNIN_ACCESS_POINT =
+             "AccountSigninActivity.SigninAccessPoint";
+-
++    private static final int PERMISSION_REQUEST_CODE = 1;
+     private AccountSigninView mView;
+     private ProfileDataCache mProfileDataCache;
+ 
+@@ -76,6 +82,30 @@ public class AccountSigninActivity extends AppCompatActivity
+         return true;
+     }
+ 
++    /**
++     * Permission check for Marshmallow
++     */
++    public void checkMallowPermissions() {
++        if (ContextCompat.checkSelfPermission(
++                        getApplicationContext(), Manifest.permission.GET_ACCOUNTS
++                ) != PackageManager.PERMISSION_GRANTED) {
++
++            Toast.makeText(getApplicationContext(),
++                    "This app requires access to your accounts to Sign you in to Google. Please allow access.", Toast.LENGTH_LONG).show();
++
++
++            if(!ActivityCompat.shouldShowRequestPermissionRationale(this,
++                    Manifest.permission.GET_ACCOUNTS) ||
++
++                    checkSelfPermission(Manifest.permission.GET_ACCOUNTS) !=
++                    PackageManager.PERMISSION_GRANTED)
++
++                ActivityCompat.requestPermissions(this,
++                        new String[]{Manifest.permission.GET_ACCOUNTS},
++                        PERMISSION_REQUEST_CODE);
++        }
++    }
++
+     @Override
+     @SuppressFBWarnings("DM_EXIT")
+     protected void onCreate(Bundle savedInstanceState) {
+@@ -93,6 +123,8 @@ public class AccountSigninActivity extends AppCompatActivity
+         // We don't trust android to restore the saved state correctly, so pass null.
+         super.onCreate(null);
+ 
++        checkMallowPermissions();
++
+         mAccessPoint = getIntent().getIntExtra(INTENT_SIGNIN_ACCESS_POINT, -1);
+         assert mAccessPoint == SigninAccessPoint.BOOKMARK_MANAGER
+                 || mAccessPoint == SigninAccessPoint.RECENT_TABS
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/signin/AccountSigninView.java b/chrome/android/java/src/org/chromium/chrome/browser/signin/AccountSigninView.java
+index 4d34143..654e127 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/signin/AccountSigninView.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/signin/AccountSigninView.java
+@@ -33,7 +33,6 @@ import org.chromium.ui.text.NoUnderlineClickableSpan;
+ import org.chromium.ui.text.SpanApplier;
+ import org.chromium.ui.text.SpanApplier.SpanInfo;
+ import org.chromium.ui.widget.ButtonCompat;
+-
+ import java.util.List;
+ 
+ // TODO(gogerald): refactor common part into one place after redesign all sign in screens.
+@@ -99,7 +98,6 @@ public class AccountSigninView extends FrameLayout implements ProfileDownloader.
+ 
+     private static final String SETTINGS_LINK_OPEN = "<LINK1>";
+     private static final String SETTINGS_LINK_CLOSE = "</LINK1>";
+-
+     private AccountManagerHelper mAccountManagerHelper;
+     private List<String> mAccountNames;
+     private AccountSigninChooseView mSigninChooseView;
+@@ -336,6 +334,7 @@ public class AccountSigninView extends FrameLayout implements ProfileDownloader.
+ 
+         setUpCancelButton();
+         updateAccounts();
++
+     }
+ 
+     private void showConfirmSigninPage() {
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/tab/InterceptNavigationDelegateImpl.java b/chrome/android/java/src/org/chromium/chrome/browser/tab/InterceptNavigationDelegateImpl.java
 index a1cf281..83cb758 100644
 --- a/chrome/android/java/src/org/chromium/chrome/browser/tab/InterceptNavigationDelegateImpl.java

@@ -28,13 +28,13 @@ echo -e "${Yel}Cleaning the source and halogen-ifying it"
 # errors on
 set -e
 OUTFOLDER=$(date +%d%m)
-# parameter "--system" allows not to start the build immdeiately
-# parameter "--no-gn" allows not to run "gclient runhooks -v" - to check the pervious commits logs
 
 cd $LOCAL_REPO/src
 	rm -rf $LOCAL_REPO/src/out
 	git clean -f -d
-	git reset --hard HEAD
+	git reset --hard HEAD~1
+        git checkout HEAD
+        gclient sync
 	git fetch origin
 	git checkout origin/m55
 	git apply $LOCAL_REPO/build/patches/halogenOS.patch && git add -f $(git status -s | awk '{print $2}') && git commit -m "This is XOS Browser"
