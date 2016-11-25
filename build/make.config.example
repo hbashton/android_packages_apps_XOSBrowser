@@ -1,0 +1,2 @@
+#!/bin/bash
+export DEPOT_TOOLS_DIR=/path/to/depot_tools
