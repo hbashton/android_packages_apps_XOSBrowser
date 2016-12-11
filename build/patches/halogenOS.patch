@@ -1,4 +1,4 @@
-From c62f0e9f1e662df9303624eec6e2e619d65e06e8 Mon Sep 17 00:00:00 2001
+From 853151321ac70ceaa6338686abcfc7fd0babc4c8 Mon Sep 17 00:00:00 2001
 From: Hunter <hbashton13@gmail.com>
 Date: Wed, 9 Nov 2016 13:45:52 -0600
 Subject: [PATCH 1/1] This is XOS Browser
@@ -32,7 +32,7 @@ Subject: [PATCH 1/1] This is XOS Browser
  .../browser/firstrun/FirstRunFlowSequencer.java    |   9 +-
  .../firstrun/ToSAndUMAFirstRunFragment.java        |   5 +-
  .../chrome/browser/infobar/DownloadInfoBar.java    |   6 +-
- .../chrome/browser/ntp/RecentTabsManager.java      |   3 -
+ .../chrome/browser/ntp/RecentTabsManager.java      |   4 -
  .../chrome/browser/ntp/RecentTabsRowAdapter.java   |   3 -
  .../browser/ntp/snippets/SnippetsConfig.java       |   4 +-
  .../browser/offlinepages/OfflinePageBridge.java    |  15 +---
@@ -59,7 +59,7 @@ Subject: [PATCH 1/1] This is XOS Browser
  .../default/res/mipmap-xxxhdpi/app_icon.png        | Bin 0 -> 16182 bytes
  swe/channels/default/values/overlay.xml            |   6 ++
  swe/channels/default/values/strings.xml            |  11 +++
- 55 files changed, 325 insertions(+), 176 deletions(-)
+ 55 files changed, 325 insertions(+), 177 deletions(-)
  create mode 100644 build/config/out/Default/args.gn
  create mode 100755 chrome/android/java/res/raw/libswexssdefender
  create mode 100644 chrome/android/java/res/raw/swe_command_line
@@ -2758,14 +2758,15 @@ index 64f0899..7cf2fae 100644
  
      private static String getPreferredFolderForMime(String mimeType) {
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/ntp/RecentTabsManager.java b/chrome/android/java/src/org/chromium/chrome/browser/ntp/RecentTabsManager.java
-index 8f511df..b9bd6cc 100644
+index aec39b8..b9bd6cc 100644
 --- a/chrome/android/java/src/org/chromium/chrome/browser/ntp/RecentTabsManager.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/ntp/RecentTabsManager.java
-@@ -380,9 +380,6 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
+@@ -380,10 +380,6 @@ public class RecentTabsManager implements AndroidSyncSettingsObserver, SignInSta
       * @return Whether sync promo should be displayed.
       */
      public boolean shouldDisplaySyncPromo() {
--        if (!SigninManager.get(mContext).isSignInAllowed()) {
+-        SigninManager signinManager = SigninManager.get(mContext);
+-        if (signinManager.isSigninDisabledByPolicy() || !signinManager.isSigninSupported()) {
 -            return false;
 -        }
  
@@ -2808,7 +2809,7 @@ index d1a38b8..abf4840 100644
  
      public static boolean isSaveToOfflineEnabled() {
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/offlinepages/OfflinePageBridge.java b/chrome/android/java/src/org/chromium/chrome/browser/offlinepages/OfflinePageBridge.java
-index 9e17f3c..5826e58 100644
+index 05a8ff2..033de34 100644
 --- a/chrome/android/java/src/org/chromium/chrome/browser/offlinepages/OfflinePageBridge.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/offlinepages/OfflinePageBridge.java
 @@ -111,10 +111,7 @@ public class OfflinePageBridge {
@@ -2839,10 +2840,10 @@ index 9e17f3c..5826e58 100644
      @VisibleForTesting
      public static boolean isPageSharingEnabled() {
          ThreadUtils.assertOnUiThread();
--        if (sPageSharingEnabled == null) {
--            sPageSharingEnabled = nativeIsPageSharingEnabled();
+-        if (sIsPageSharingEnabled == null) {
+-            sIsPageSharingEnabled = nativeIsPageSharingEnabled();
 -        }
--        return sPageSharingEnabled;
+-        return sIsPageSharingEnabled;
 +        return true;
      }
  
@@ -3018,7 +3019,7 @@ index 08c0126..3530d42 100644
      }
  
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/signin/AccountSigninActivity.java b/chrome/android/java/src/org/chromium/chrome/browser/signin/AccountSigninActivity.java
-index e28690a..f91a981 100644
+index e03695d..eeb06d1 100644
 --- a/chrome/android/java/src/org/chromium/chrome/browser/signin/AccountSigninActivity.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/signin/AccountSigninActivity.java
 @@ -8,10 +8,14 @@ import android.app.Activity;
@@ -3096,7 +3097,7 @@ index e28690a..f91a981 100644
          assert mAccessPoint == SigninAccessPoint.BOOKMARK_MANAGER
                  || mAccessPoint == SigninAccessPoint.RECENT_TABS
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/signin/AccountSigninView.java b/chrome/android/java/src/org/chromium/chrome/browser/signin/AccountSigninView.java
-index 4d34143..654e127 100644
+index f49c6df..26554ee 100644
 --- a/chrome/android/java/src/org/chromium/chrome/browser/signin/AccountSigninView.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/signin/AccountSigninView.java
 @@ -33,7 +33,6 @@ import org.chromium.ui.text.NoUnderlineClickableSpan;
@@ -3115,7 +3116,7 @@ index 4d34143..654e127 100644
      private AccountManagerHelper mAccountManagerHelper;
      private List<String> mAccountNames;
      private AccountSigninChooseView mSigninChooseView;
-@@ -336,6 +334,7 @@ public class AccountSigninView extends FrameLayout implements ProfileDownloader.
+@@ -328,6 +326,7 @@ public class AccountSigninView extends FrameLayout implements ProfileDownloader.
  
          setUpCancelButton();
          updateAccounts();
@@ -3143,11 +3144,11 @@ index a1cf281..83cb758 100644
          }
 diff --git a/components/web-shield/xss_defender b/components/web-shield/xss_defender
 new file mode 160000
-index 0000000..cf8607a
+index 0000000..b5551a6
 --- /dev/null
 +++ b/components/web-shield/xss_defender
 @@ -0,0 +1 @@
-+Subproject commit cf8607ad35676eea91c1e519c9c09b774aa59d6a
++Subproject commit b5551a6ead4d2c454f388639a0f1c1956c2d32f8
 diff --git a/sandbox/linux/BUILD.gn b/sandbox/linux/BUILD.gn
 index 1e6d7a1..6f7d36a 100644
 --- a/sandbox/linux/BUILD.gn
